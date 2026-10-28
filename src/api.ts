@@ -40,7 +40,7 @@ async function route(request: Request, env: Env, me: Person, url: URL): Promise<
 		return json({ messages });
 	}
 	if (path === "/api/chat/messages" && method === "POST") {
-		return json({ posted: await chat.postMessage(env, me, await body(request)) });
+		return json({ posted: await chat.postMessage(env, me, "web", await body(request)) });
 	}
 	if (path === "/api/chat/read" && method === "POST") {
 		return json(await chat.markRead(env, me, (await body<{ channel?: string }>(request)).channel));

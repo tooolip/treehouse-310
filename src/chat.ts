@@ -2,11 +2,15 @@ import { type Person, UserError } from "./auth";
 
 export const MAX_MESSAGE = 10_000;
 
+// "web" is the person on the web page; "claude" is their Claude, posting through MCP.
+export type Via = "web" | "claude";
+
 export type ChatMessage = {
 	id: number;
 	channel: string;
 	parent_id: number | null;
 	author: Person;
+	via: Via;
 	text: string;
 	created_at: string;
 	reply_count?: number;
@@ -39,6 +43,7 @@ export async function listChannels(env: Env, me: Person) {
 export async function postMessage(
 	env: Env,
 	me: Person,
+	via: Via,
 	args: { channel?: string; text: string; reply_to?: number },
 ) {
 	const text = args.text.trim();
@@ -56,9 +61,9 @@ export async function postMessage(
 		channel = target.channel;
 	}
 	const row = await env.DB.prepare(
-		"INSERT INTO chat_messages (channel, parent_id, author, text) VALUES (?, ?, ?, ?) RETURNING *",
+		"INSERT INTO chat_messages (channel, parent_id, author, via, text) VALUES (?, ?, ?, ?, ?) RETURNING *",
 	)
-		.bind(channel, parentId, me, text)
+		.bind(channel, parentId, me, via, text)
 		.first<ChatMessage>();
 	// Your own message counts as read up to that point.
 	await markRead(env, me, channel);

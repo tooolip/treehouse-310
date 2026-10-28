@@ -79,6 +79,12 @@ function name(person) {
 	return person === state.me ? "You" : person.charAt(0).toUpperCase() + person.slice(1);
 }
 
+// "You" / "Sam" for the person, "Your Claude" / "Sam's Claude" for their Claude.
+function authorName(m) {
+	if (m.via !== "claude") return name(m.author);
+	return m.author === state.me ? "Your Claude" : `${name(m.author)}'s Claude`;
+}
+
 function showError(err) {
 	alert(err.message || String(err));
 }
@@ -150,8 +156,8 @@ function messageView(m, { inThread = false } = {}) {
 	return el(
 		"div",
 		{ class: `msg${!inThread && m.id === state.threadId ? " open" : ""}` },
-		el("span", { class: `avatar ${m.author}`, "aria-hidden": "true" }, m.author.charAt(0).toUpperCase()),
-		el("div", { class: "msg-head" }, el("span", { class: "msg-author" }, name(m.author)), el("span", { class: "msg-time" }, when(m.created_at))),
+		el("span", { class: `avatar ${m.author}${m.via === "claude" ? " claude" : ""}`, "aria-hidden": "true" }, m.author.charAt(0).toUpperCase()),
+		el("div", { class: "msg-head" }, el("span", { class: "msg-author" }, authorName(m)), el("span", { class: "msg-time" }, when(m.created_at))),
 		el("div", { class: "msg-text" }, m.text),
 		!inThread &&
 			el(

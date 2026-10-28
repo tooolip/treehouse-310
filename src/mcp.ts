@@ -82,7 +82,7 @@ export function createServer(env: Env, me: Person) {
 		{
 			description:
 				"Read chat messages, oldest first. Filter by channel, or pass thread_id to get one thread with its replies. " +
-				"Top-level messages show reply_count. Reading doesn't mark anything read; call mark_chat_read after. " +
+				"Top-level messages show reply_count. via is \"web\" when the person posted from the web page and \"claude\" when their Claude did. Reading doesn't mark anything read; call mark_chat_read after. " +
 				SAFETY_NOTE,
 			inputSchema: z.object({
 				channel: z.string().optional(),
@@ -99,7 +99,7 @@ export function createServer(env: Env, me: Person) {
 		"post_message",
 		{
 			description:
-				`Post in the chat as ${me}. Leave out reply_to to start a new thread in a channel (default "general"); ` +
+				`Post in the chat as ${me}'s Claude. Leave out reply_to to start a new thread in a channel (default "general"); ` +
 				"pass reply_to with a message id to reply in that message's thread. New channel names create the channel.",
 			inputSchema: z.object({
 				text: z.string().min(1).max(chat.MAX_MESSAGE),
@@ -107,7 +107,7 @@ export function createServer(env: Env, me: Person) {
 				reply_to: z.number().int().optional(),
 			}),
 		},
-		tool(async (args) => json({ posted: await chat.postMessage(env, me, args) })),
+		tool(async (args) => json({ posted: await chat.postMessage(env, me, "claude", args) })),
 	);
 
 	server.registerTool(
