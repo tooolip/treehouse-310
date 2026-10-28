@@ -202,7 +202,7 @@ textarea { resize: vertical; }
 }
 .msg.open { border-color: var(--accent); background: var(--accent-soft); }
 .avatar {
-	grid-row: span 3;
+	grid-row: span 4;
 	width: 34px;
 	height: 34px;
 	border-radius: 50%;
@@ -223,6 +223,9 @@ textarea { resize: vertical; }
 .msg-author { font-weight: 800; }
 .msg-time { color: var(--muted); font-size: 12px; }
 .msg-text { white-space: pre-wrap; overflow-wrap: anywhere; }
+.msg-images { grid-column: 2; display: flex; flex-wrap: wrap; gap: 8px; margin: 6px 0 2px; }
+.msg-images img { max-width: min(100%, 420px); max-height: 300px; border-radius: 12px; border: 1.5px solid var(--border); cursor: zoom-in; }
+.msg-images img.big { max-width: 100%; max-height: none; cursor: zoom-out; }
 .msg-replies { font-size: 14px; margin-top: 2px; }
 
 .composer { display: flex; gap: 8px; align-items: flex-end; padding-top: 12px; }

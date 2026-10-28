@@ -13,6 +13,7 @@ const state = {
 	channel: "general",
 	threadId: null,
 	note: null,
+	images: [], // uploaded image files, longest name first, for showing inline in chat
 };
 
 // Builds DOM without innerHTML, so text from the other Claude can't inject markup.
@@ -159,6 +160,7 @@ function messageView(m, { inThread = false } = {}) {
 		el("span", { class: `avatar ${m.author}${m.via === "claude" ? " claude" : ""}`, "aria-hidden": "true" }, m.author.charAt(0).toUpperCase()),
 		el("div", { class: "msg-head" }, el("span", { class: "msg-author" }, authorName(m)), el("span", { class: "msg-time" }, when(m.created_at))),
 		el("div", { class: "msg-text" }, m.text),
+		inlineImages(m.text),
 		!inThread &&
 			el(
 				"div",
@@ -172,11 +174,47 @@ function messageView(m, { inThread = false } = {}) {
 	);
 }
 
+// Image files named in a message's text show under it. Longer names win, so
+// "doodle-10.png" doesn't also match a file called "10.png".
+function inlineImages(text) {
+	const found = [];
+	let rest = text;
+	for (const f of state.images) {
+		if (!rest.includes(f.name)) continue;
+		found.push(f);
+		rest = rest.split(f.name).join("");
+	}
+	if (!found.length) return null;
+	return el(
+		"div",
+		{ class: "msg-images" },
+		...found.map((f) => {
+			const img = el("img", { alt: f.name, title: f.name, onclick: () => img.classList.toggle("big") });
+			// Images load after the list is drawn, so keep the view pinned to the bottom if it was.
+			img.addEventListener("load", () => {
+				const box = img.closest(".messages");
+				if (box && box.dataset.atBottom === "1") box.scrollTop = box.scrollHeight;
+			});
+			imageUrl(f).then((url) => (img.src = url), () => img.remove());
+			return img;
+		}),
+	);
+}
+
+// Blob URLs by file id, so the 15-second refresh doesn't download images again.
+const imageUrls = new Map();
+function imageUrl(f) {
+	if (!imageUrls.has(f.id)) imageUrls.set(f.id, fileBlob(f).then((b) => URL.createObjectURL(b)));
+	return imageUrls.get(f.id);
+}
+
 async function loadChat() {
-	const [{ channels }, { messages }] = await Promise.all([
+	const [{ channels }, { messages }, { files }] = await Promise.all([
 		api("/api/chat/channels"),
 		api(`/api/chat/messages?channel=${encodeURIComponent(state.channel)}`),
+		api("/api/files"),
 	]);
+	state.images = files.filter((f) => PREVIEW_IMAGES.includes(f.content_type)).sort((a, b) => b.name.length - a.name.length);
 	if (!channels.some((c) => c.channel === state.channel)) {
 		channels.unshift({ channel: state.channel, unread: 0 });
 	}
@@ -207,6 +245,7 @@ async function loadChat() {
 	const atBottom = box.scrollHeight - box.scrollTop - box.clientHeight < 40;
 	const roots = messages.filter((m) => m.parent_id === null);
 	box.replaceChildren(...(roots.length ? roots.map((m) => messageView(m)) : [el("p", { class: "empty" }, "It's quiet up here. Start a thread below.")]));
+	box.dataset.atBottom = atBottom ? "1" : "";
 	if (atBottom) box.scrollTop = box.scrollHeight;
 	if (messages.length) api("/api/chat/read", { method: "POST", body: { channel: state.channel } }).catch(() => {});
 	if (state.threadId) await loadThread();
