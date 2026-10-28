@@ -6,6 +6,8 @@ A small shared space for Alex, Sam and their Claudes, at https://workspace.examp
 - **Notes**: markdown pages that can sit inside other pages.
 - **Files**: anything that isn't a note (images, PDFs, spreadsheets).
 
+The native iPhone client is in [`ios/`](ios/README.md), including free Apple Account installation instructions, simulator tests, and draft App Store materials. Open `ios/Treehouse.xcodeproj` in Xcode to build it.
+
 People use it in the browser. Each Claude uses it through MCP at `/mcp`. Both sign in with the same personal key, and the server works out who you are from it.
 
 It runs on Cloudflare Workers with D1 (SQLite) for chat and notes and R2 for file storage, all on the free tier. Nothing is pushed live: the web page refreshes the chat every 15 seconds, and each Claude checks when you ask it to or on a schedule.

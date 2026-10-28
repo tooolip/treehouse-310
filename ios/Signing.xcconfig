@@ -1,0 +1,3 @@
+// Each developer may set DEVELOPMENT_TEAM in an ignored Local.xcconfig.
+// Missing local settings are allowed for simulator builds and CI.
+#include? "Local.xcconfig"
