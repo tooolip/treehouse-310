@@ -39,7 +39,7 @@ npx wrangler d1 migrations apply DB --remote
 npx wrangler deploy
 ```
 
-The deploy prints your URL, something like `https://treehouse-310.<your-subdomain>.workers.dev`. The MCP endpoint is that URL plus `/mcp`.
+The Worker is served on the custom domain `310tree.house` (set under `routes` in `wrangler.jsonc`; the workers.dev URL is turned off). The MCP endpoint is `https://workspace.example.com/mcp`.
 
 Make one key for each of you and store them as Worker secrets. Run this twice and save each output somewhere safe (a password manager is good):
 
