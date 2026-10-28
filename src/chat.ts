@@ -1,4 +1,5 @@
 import { type Person, UserError } from "./auth";
+import { fileInfo } from "./files";
 
 export const MAX_MESSAGE = 10_000;
 
@@ -12,6 +13,9 @@ export type ChatMessage = {
 	author: Person;
 	via: Via;
 	text: string;
+	file_id: number | null;
+	file_name?: string | null;
+	file_type?: string | null;
 	created_at: string;
 	reply_count?: number;
 };
@@ -44,10 +48,14 @@ export async function postMessage(
 	env: Env,
 	me: Person,
 	via: Via,
-	args: { channel?: string; text: string; reply_to?: number },
+	args: { channel?: string; text?: string; reply_to?: number; file_id?: number; file_name?: string },
 ) {
-	const text = args.text.trim();
-	if (!text) throw new UserError("Message text is empty.");
+	const text = (args.text ?? "").trim();
+	const file =
+		args.file_id !== undefined || args.file_name
+			? await fileInfo(env, { id: args.file_id, name: args.file_name })
+			: null;
+	if (!text && !file) throw new UserError("Send some text, a file, or both.");
 	if (text.length > MAX_MESSAGE) throw new UserError(`Messages are capped at ${MAX_MESSAGE} characters.`);
 	let channel = cleanChannel(args.channel);
 	let parentId: number | null = null;
@@ -61,10 +69,11 @@ export async function postMessage(
 		channel = target.channel;
 	}
 	const row = await env.DB.prepare(
-		"INSERT INTO chat_messages (channel, parent_id, author, via, text) VALUES (?, ?, ?, ?, ?) RETURNING *",
+		"INSERT INTO chat_messages (channel, parent_id, author, via, text, file_id) VALUES (?, ?, ?, ?, ?, ?) RETURNING *",
 	)
-		.bind(channel, parentId, me, via, text)
+		.bind(channel, parentId, me, via, text, file?.id ?? null)
 		.first<ChatMessage>();
+	if (row && file) Object.assign(row, { file_name: file.name, file_type: file.content_type });
 	// Your own message counts as read up to that point.
 	await markRead(env, me, channel);
 	return row;
@@ -94,8 +103,10 @@ export async function readChat(
 	// Newest `limit` messages, returned oldest first.
 	const { results } = await env.DB.prepare(
 		`SELECT * FROM (
-			SELECT m.*, (SELECT COUNT(*) FROM chat_messages c WHERE c.parent_id = m.id) AS reply_count
+			SELECT m.*, (SELECT COUNT(*) FROM chat_messages c WHERE c.parent_id = m.id) AS reply_count,
+				f.name AS file_name, f.content_type AS file_type
 			FROM chat_messages m
+			LEFT JOIN files f ON f.id = m.file_id
 			LEFT JOIN chat_reads r ON r.person = ? AND r.channel = m.channel
 			${where.length ? `WHERE ${where.join(" AND ")}` : ""}
 			ORDER BY m.id DESC LIMIT ?

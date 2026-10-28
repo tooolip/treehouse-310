@@ -49,7 +49,9 @@
 				<h2 id="channel-title"></h2>
 				<div id="messages" class="messages"></div>
 				<form id="composer" class="composer">
-					<textarea name="text" rows="2" placeholder="Say something to start a thread" required></textarea>
+					<div class="attachment" hidden></div>
+					<label class="attach" title="Add a picture"><input type="file" name="file" accept="image/*" hidden><span aria-hidden="true">🖼️</span><span class="sr-only">Add a picture</span></label>
+					<textarea name="text" rows="2" placeholder="Say something to start a thread"></textarea>
 					<button type="submit" class="primary">Send</button>
 				</form>
 			</div>
@@ -57,7 +59,9 @@
 				<div class="thread-head"><h2>Thread</h2><button id="close-thread" class="link">Close</button></div>
 				<div id="thread-messages" class="messages"></div>
 				<form id="reply-composer" class="composer">
-					<textarea name="text" rows="2" placeholder="Reply" required></textarea>
+					<div class="attachment" hidden></div>
+					<label class="attach" title="Add a picture"><input type="file" name="file" accept="image/*" hidden><span aria-hidden="true">🖼️</span><span class="sr-only">Add a picture</span></label>
+					<textarea name="text" rows="2" placeholder="Reply"></textarea>
 					<button type="submit" class="primary">Reply</button>
 				</form>
 			</aside>

@@ -159,8 +159,9 @@ function messageView(m, { inThread = false } = {}) {
 		{ class: `msg${!inThread && m.id === state.threadId ? " open" : ""}` },
 		el("span", { class: `avatar ${m.author}${m.via === "claude" ? " claude" : ""}`, "aria-hidden": "true" }, m.author.charAt(0).toUpperCase()),
 		el("div", { class: "msg-head" }, el("span", { class: "msg-author" }, authorName(m)), el("span", { class: "msg-time" }, when(m.created_at))),
-		el("div", { class: "msg-text" }, m.text),
-		inlineImages(m.text),
+		m.text ? el("div", { class: "msg-text" }, m.text) : null,
+		attachedFile(m),
+		inlineImages(m.text, m.file_id),
 		!inThread &&
 			el(
 				"div",
@@ -176,29 +177,37 @@ function messageView(m, { inThread = false } = {}) {
 
 // Image files named in a message's text show under it. Longer names win, so
 // "doodle-10.png" doesn't also match a file called "10.png".
-function inlineImages(text) {
+function inlineImages(text, skipId) {
 	const found = [];
 	let rest = text;
 	for (const f of state.images) {
-		if (!rest.includes(f.name)) continue;
+		if (f.id === skipId || !rest.includes(f.name)) continue;
 		found.push(f);
 		rest = rest.split(f.name).join("");
 	}
 	if (!found.length) return null;
-	return el(
-		"div",
-		{ class: "msg-images" },
-		...found.map((f) => {
-			const img = el("img", { alt: f.name, title: f.name, onclick: () => img.classList.toggle("big") });
-			// Images load after the list is drawn, so keep the view pinned to the bottom if it was.
-			img.addEventListener("load", () => {
-				const box = img.closest(".messages");
-				if (box && box.dataset.atBottom === "1") box.scrollTop = box.scrollHeight;
-			});
-			imageUrl(f).then((url) => (img.src = url), () => img.remove());
-			return img;
-		}),
-	);
+	return el("div", { class: "msg-images" }, ...found.map(imageView));
+}
+
+// The file a message carries: a picture shows inline, anything else is a download link.
+function attachedFile(m) {
+	if (!m.file_id || !m.file_name) return null;
+	const f = { id: m.file_id, name: m.file_name, content_type: m.file_type };
+	if (!PREVIEW_IMAGES.includes(f.content_type)) {
+		return el("div", { class: "msg-images" }, el("button", { class: "link", onclick: () => download(f) }, `📎 ${f.name}`));
+	}
+	return el("div", { class: "msg-images" }, imageView(f));
+}
+
+function imageView(f) {
+	const img = el("img", { alt: f.name, title: f.name, onclick: () => img.classList.toggle("big") });
+	// Images load after the list is drawn, so keep the view pinned to the bottom if it was.
+	img.addEventListener("load", () => {
+		const box = img.closest(".messages");
+		if (box && box.dataset.atBottom === "1") box.scrollTop = box.scrollHeight;
+	});
+	imageUrl(f).then((url) => (img.src = url), () => img.remove());
+	return img;
 }
 
 // Blob URLs by file id, so the 15-second refresh doesn't download images again.
@@ -278,30 +287,74 @@ function sendOnEnter(form) {
 	});
 }
 
-$("composer").addEventListener("submit", async (e) => {
-	e.preventDefault();
-	const text = e.target.elements.text;
+// A picture waiting to be sent with a composer's next message, from the button or a paste.
+function setupAttach(form) {
+	const chip = form.querySelector(".attachment");
+	const input = form.elements.file;
+	form.attachment = null;
+	form.setAttachment = (file) => {
+		if (form.attachment) URL.revokeObjectURL(form.attachment.url);
+		form.attachment = file ? { file, url: URL.createObjectURL(file) } : null;
+		input.value = "";
+		chip.hidden = !file;
+		chip.replaceChildren(
+			...(file
+				? [
+						el("img", { src: form.attachment.url, alt: "" }),
+						el("span", {}, file.name),
+						el("button", { type: "button", class: "link", onclick: () => form.setAttachment(null) }, "Remove"),
+					]
+				: []),
+		);
+	};
+	input.addEventListener("change", () => input.files[0] && form.setAttachment(input.files[0]));
+	form.elements.text.addEventListener("paste", (e) => {
+		const item = [...e.clipboardData.items].find((i) => i.kind === "file" && i.type.startsWith("image/"));
+		if (!item) return;
+		e.preventDefault();
+		const file = item.getAsFile();
+		const ext = file.type.split("/")[1] || "png";
+		form.setAttachment(new File([file], file.name && file.name !== "image.png" ? file.name : `pasted-${Date.now()}.${ext}`, { type: file.type }));
+	});
+}
+
+// Uploads the waiting picture, if any, then posts the message with it.
+async function sendFrom(form, where) {
+	const text = form.elements.text;
+	if (!text.value.trim() && !form.attachment) return;
+	const button = form.querySelector("button[type=submit]");
+	button.disabled = true;
 	try {
-		await api("/api/chat/messages", { method: "POST", body: { channel: state.channel, text: text.value } });
+		let file_id;
+		if (form.attachment) {
+			const data = new FormData();
+			data.append("file", form.attachment.file);
+			file_id = (await api("/api/files", { method: "POST", body: data })).uploaded.id;
+		}
+		await api("/api/chat/messages", { method: "POST", body: { ...where, text: text.value, file_id } });
 		text.value = "";
+		form.setAttachment(null);
 		await loadChat();
-		$("messages").scrollTop = $("messages").scrollHeight;
+		return true;
 	} catch (err) {
 		showError(err);
+	} finally {
+		button.disabled = false;
 	}
+}
+
+$("composer").addEventListener("submit", async (e) => {
+	e.preventDefault();
+	if (await sendFrom(e.target, { channel: state.channel })) $("messages").scrollTop = $("messages").scrollHeight;
 });
 
 $("reply-composer").addEventListener("submit", async (e) => {
 	e.preventDefault();
-	const text = e.target.elements.text;
-	try {
-		await api("/api/chat/messages", { method: "POST", body: { reply_to: state.threadId, text: text.value } });
-		text.value = "";
-		await loadChat();
-	} catch (err) {
-		showError(err);
-	}
+	await sendFrom(e.target, { reply_to: state.threadId });
 });
+
+setupAttach($("composer"));
+setupAttach($("reply-composer"));
 
 sendOnEnter($("composer"));
 sendOnEnter($("reply-composer"));

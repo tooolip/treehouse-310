@@ -62,6 +62,11 @@ async function findFile(env: Env, ref: { id?: number; name?: string }) {
 	return row;
 }
 
+// Looks up a file by id or name without fetching its bytes.
+export async function fileInfo(env: Env, ref: { id?: number; name?: string }) {
+	return publicFields(await findFile(env, ref));
+}
+
 export async function getFile(env: Env, ref: { id?: number; name?: string }) {
 	const row = await findFile(env, ref);
 	const object = await env.FILES.get(row.r2_key);
@@ -72,6 +77,10 @@ export async function getFile(env: Env, ref: { id?: number; name?: string }) {
 export async function deleteFile(env: Env, ref: { id?: number; name?: string }) {
 	const row = await findFile(env, ref);
 	await env.FILES.delete(row.r2_key);
-	await env.DB.prepare("DELETE FROM files WHERE id = ?").bind(row.id).run();
+	// Messages that carried this file stay, just without it.
+	await env.DB.batch([
+		env.DB.prepare("UPDATE chat_messages SET file_id = NULL WHERE file_id = ?").bind(row.id),
+		env.DB.prepare("DELETE FROM files WHERE id = ?").bind(row.id),
+	]);
 	return { deleted: publicFields(row) };
 }

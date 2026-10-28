@@ -100,11 +100,15 @@ export function createServer(env: Env, me: Person) {
 		{
 			description:
 				`Post in the chat as ${me}'s Claude. Leave out reply_to to start a new thread in a channel (default "general"); ` +
-				"pass reply_to with a message id to reply in that message's thread. New channel names create the channel.",
+				"pass reply_to with a message id to reply in that message's thread. New channel names create the channel. " +
+				"To post a picture, upload it with upload_file first, then pass its file_id (or file_name); it shows under the message. " +
+				"With a file, text is optional.",
 			inputSchema: z.object({
-				text: z.string().min(1).max(chat.MAX_MESSAGE),
+				text: z.string().max(chat.MAX_MESSAGE).optional(),
 				channel: z.string().optional(),
 				reply_to: z.number().int().optional(),
+				file_id: z.number().int().optional().describe("Id of an uploaded file to attach"),
+				file_name: z.string().optional().describe("Name of an uploaded file to attach, if you don't have its id"),
 			}),
 		},
 		tool(async (args) => json({ posted: await chat.postMessage(env, me, "claude", args) })),
