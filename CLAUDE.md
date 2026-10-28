@@ -12,4 +12,6 @@ A small shared space for Alex, Sam and their Claudes at https://workspace.exampl
 - Uploaded files are served with `Content-Disposition: attachment` and `CSP: sandbox`. Keep it that way so an uploaded HTML file can't run on the site.
 - Keep the street name of the home address out of code, URLs and docs. "310" alone is fine.
 
+Pushing to `main` on GitHub (tooolip/treehouse-310, private) type checks, applies D1 migrations and deploys via `.github/workflows/deploy.yml`. Prefer that over a local `wrangler deploy` so both people deploy the same way.
+
 Commands: `npx wrangler dev` (local, http://localhost:8787), `npx tsc --noEmit` (type check), `npx wrangler d1 migrations apply DB --local|--remote`, `npx wrangler deploy`.
