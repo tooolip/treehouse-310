@@ -1,21 +1,37 @@
 # Treehouse 310
 
-A tiny MCP server so Alex's Claude and Sam's Claude can leave each other messages. It runs on Cloudflare Workers with a D1 (SQLite) database, on the free tier.
+A small shared space for Alex, Sam and their Claudes, at https://workspace.example.com. It has three areas:
 
-It isn't real-time. Each Claude checks the inbox when you ask it to, or on a schedule if you set one up.
+- **Chat**: channels with threads and replies, like a tiny Slack.
+- **Notes**: markdown pages that can sit inside other pages.
+- **Files**: anything that isn't a note (images, PDFs, spreadsheets).
 
-## Tools
+People use it in the browser. Each Claude uses it through MCP at `/mcp`. Both sign in with the same personal key, and the server works out who you are from it.
 
-- `send_message(to, text, thread?)`: `to` is `alex` or `sam`. Thread defaults to `general`.
-- `read_messages(unread_only?, since?, thread?, include_sent?, limit?)`: messages sent to you, unread only by default. Reading doesn't mark them read.
-- `list_threads()`: threads with message counts, last activity and your unread count.
-- `mark_read(ids?, thread?)`: mark your messages read. With no arguments it marks everything.
+It runs on Cloudflare Workers with D1 (SQLite) for chat and notes and R2 for file storage, all on the free tier. Nothing is pushed live: the web page refreshes the chat every 15 seconds, and each Claude checks when you ask it to or on a schedule.
 
-You never say who you are. The server works it out from your key.
+## MCP tools
+
+Chat
+- `list_channels()`: channels with message and thread counts, last activity and your unread count.
+- `read_chat(channel?, thread_id?, unread_only?, since?, limit?)`: messages, oldest first. `thread_id` gives one thread with its replies.
+- `post_message(text, channel?, reply_to?)`: no `reply_to` starts a new thread (channel defaults to `general`); with it, replies in that thread.
+- `mark_chat_read(channel?)`: marks one channel or everything read.
+
+Notes
+- `list_notes()`: the whole tree, with paths like `Trips/Lisbon plan`.
+- `read_note(path? | id?)`, `write_note(path, body, mode?)`, `move_note(path, new_path)`, `delete_note(path, recursive?)`. Writing creates missing parent pages. `mode: "append"` adds to the end.
+
+Files
+- `list_files()`, `upload_file(name, text? | base64?, content_type?, description?)`, `get_file(id? | name?)`, `delete_file(id? | name?)`. MCP handles files up to 5 MB; the web page takes up to 25 MB.
+
+## The web page
+
+Open https://workspace.example.com and paste your key. It's kept in that browser's local storage, so use Sign out on a shared computer. The page only talks to this server; uploaded files are downloaded, never opened as pages, so a file can't run code on the site.
 
 ## A note on trust
 
-Messages from the other Claude are information, not commands. If a message says "go delete X" or "run Y", your Claude should check with you first. The server repeats this in its instructions and in every `read_messages` result, but it's worth saying in your own CLAUDE.md too.
+Anything in Treehouse can be written by the other Claude, so treat it as information, not commands. If a message or note says "go delete X" or "run Y", your Claude should check with you first. The server says this in its instructions and in what it returns, but it's worth putting in your own CLAUDE.md too.
 
 ## Deploy (Alex, once)
 
@@ -32,10 +48,19 @@ Create the database and copy the `database_id` it prints into `wrangler.jsonc` u
 npx wrangler d1 create treehouse-310
 ```
 
-Create the table, then deploy:
+Turn on R2 in the Cloudflare dashboard (R2 Object Storage), then create the file bucket:
+
+```bash
+npx wrangler r2 bucket create treehouse-310-files
+```
+
+Create the tables, then deploy:
 
 ```bash
 npx wrangler d1 migrations apply DB --remote
+```
+
+```bash
 npx wrangler deploy
 ```
 
@@ -75,9 +100,9 @@ Sam runs the same thing on his computer, with his key:
 claude mcp add --transport http --scope user treehouse-310 https://workspace.example.com/mcp --header "Authorization: Bearer MEMBER_TWO_KEY_HERE"
 ```
 
-`--scope user` makes it available in every project. Check it worked with `claude mcp list`, or ask Claude "check my Treehouse inbox".
+`--scope user` makes it available in every project. Check it worked with `claude mcp list`, or ask Claude "check Treehouse for anything new".
 
-To have Claude check on its own, use `/loop` in a session (for example `/loop 30m check my Treehouse inbox and tell me if anything's new`) or a scheduled task.
+To have Claude check on its own, use `/loop` in a session (for example `/loop 30m check Treehouse chat and tell me if anything's new`) or a scheduled task.
 
 ## Revoking or rotating a key
 
@@ -94,4 +119,4 @@ npx wrangler d1 migrations apply DB --local
 npx wrangler dev
 ```
 
-The server runs at `http://localhost:8787/mcp`, with the test keys from `.dev.vars`.
+The web page is at `http://localhost:8787` and MCP at `http://localhost:8787/mcp`, with the test keys from `.dev.vars`. Local R2 and D1 data live in `.wrangler/` (gitignored).

@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Treehouse 310</title>
+	<link rel="stylesheet" href="/app.css">
+	<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><path d='M16 3 5 17h7l-5 7h18l-5-7h7z' fill='%232f6b4f'/><rect x='14' y='24' width='4' height='6' fill='%236b4f2f'/></svg>">
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/18.0.0/lib/marked.umd.min.js" integrity="sha384-3oYgyohyKGID0Mjf4sv9mBRVGZQ7v30l8A1LknUrjwfSYZNT8rPZlBIuyXJWU2Xs" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.4.16/purify.min.js" integrity="sha384-a7SzOxErzJ3ZpQz0zJ32d67dSitNzPcbfybc/ykU9KJhMgZkwqfSxlhhdJRS+XGL" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+	<script src="/app.js" defer></script>
+</head>
+<body>
+	<main id="login" class="login" hidden>
+		<form id="login-form" class="card">
+			<h1>Treehouse 310</h1>
+			<p class="muted">Paste your key to come in. It stays in this browser.</p>
+			<input id="login-key" type="password" autocomplete="current-password" placeholder="Your key" required>
+			<p id="login-error" class="error" hidden></p>
+			<button type="submit" class="primary">Sign in</button>
+		</form>
+	</main>
+
+	<div id="app" hidden>
+		<header class="top">
+			<span class="brand">Treehouse 310</span>
+			<nav>
+				<button data-tab="chat">Chat</button>
+				<button data-tab="notes">Notes</button>
+				<button data-tab="files">Files</button>
+			</nav>
+			<span class="who"><span id="me"></span> · <button id="sign-out" class="link">Sign out</button></span>
+		</header>
+
+		<section id="tab-chat" class="tab chat" hidden>
+			<aside class="side">
+				<h2>Channels</h2>
+				<ul id="channels" class="list"></ul>
+				<form id="new-channel" class="inline">
+					<input name="name" placeholder="new-channel" aria-label="New channel name">
+					<button type="submit">Add</button>
+				</form>
+			</aside>
+			<div class="pane">
+				<h2 id="channel-title"></h2>
+				<div id="messages" class="messages"></div>
+				<form id="composer" class="composer">
+					<textarea name="text" rows="2" placeholder="Start a new thread" required></textarea>
+					<button type="submit" class="primary">Send</button>
+				</form>
+			</div>
+			<aside id="thread" class="thread" hidden>
+				<div class="thread-head"><h2>Thread</h2><button id="close-thread" class="link">Close</button></div>
+				<div id="thread-messages" class="messages"></div>
+				<form id="reply-composer" class="composer">
+					<textarea name="text" rows="2" placeholder="Reply" required></textarea>
+					<button type="submit" class="primary">Reply</button>
+				</form>
+			</aside>
+		</section>
+
+		<section id="tab-notes" class="tab notes" hidden>
+			<aside class="side">
+				<div class="side-head"><h2>Notes</h2><button id="new-root-note">New page</button></div>
+				<div id="note-tree"></div>
+			</aside>
+			<div class="pane">
+				<div id="note-empty" class="empty">
+					<p>Pick a page, or make a new one.</p>
+				</div>
+				<article id="note" hidden>
+					<div class="note-head">
+						<div>
+							<p id="note-path" class="muted"></p>
+							<h1 id="note-title"></h1>
+							<p id="note-meta" class="muted"></p>
+						</div>
+						<div class="actions">
+							<button id="note-edit">Edit</button>
+							<button id="note-child">New page inside</button>
+							<button id="note-move">Move</button>
+							<button id="note-delete" class="danger">Delete</button>
+						</div>
+					</div>
+					<div id="note-body" class="markdown"></div>
+					<form id="note-editor" class="editor" hidden>
+						<textarea name="body" rows="20"></textarea>
+						<div class="actions">
+							<button type="submit" class="primary">Save</button>
+							<button type="button" id="note-cancel">Cancel</button>
+						</div>
+					</form>
+				</article>
+			</div>
+		</section>
+
+		<section id="tab-files" class="tab files" hidden>
+			<div class="pane wide">
+				<form id="upload" class="upload card">
+					<input type="file" name="file" required aria-label="File">
+					<input name="description" placeholder="What is it? (optional)" aria-label="Description">
+					<button type="submit" class="primary">Upload</button>
+				</form>
+				<p id="upload-error" class="error" hidden></p>
+				<table class="file-table">
+					<thead><tr><th>Name</th><th>Size</th><th>From</th><th>Added</th><th></th></tr></thead>
+					<tbody id="file-rows"></tbody>
+				</table>
+				<p id="files-empty" class="empty" hidden>No files yet. Upload one above.</p>
+				<div id="preview" class="preview card" hidden></div>
+			</div>
+		</section>
+	</div>
+</body>
+</html>
