@@ -4,8 +4,11 @@
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<title>Treehouse 310</title>
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito:wght@400;600;700;800&display=swap">
 	<link rel="stylesheet" href="/app.css">
-	<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><path d='M16 3 5 17h7l-5 7h18l-5-7h7z' fill='%232f6b4f'/><rect x='14' y='24' width='4' height='6' fill='%236b4f2f'/></svg>">
+	<link rel="icon" href="/favicon.svg">
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/18.0.0/lib/marked.umd.min.js" integrity="sha384-3oYgyohyKGID0Mjf4sv9mBRVGZQ7v30l8A1LknUrjwfSYZNT8rPZlBIuyXJWU2Xs" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.4.16/purify.min.js" integrity="sha384-a7SzOxErzJ3ZpQz0zJ32d67dSitNzPcbfybc/ykU9KJhMgZkwqfSxlhhdJRS+XGL" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 	<script src="/app.js" defer></script>
@@ -13,17 +16,18 @@
 <body>
 	<main id="login" class="login" hidden>
 		<form id="login-form" class="card">
+			<svg class="art" viewBox="0 0 120 132" aria-hidden="true"><ellipse cx="60" cy="127" rx="48" ry="5" fill="#8cc06b"/><circle cx="34" cy="48" r="24" fill="#6fae57"/><circle cx="86" cy="48" r="24" fill="#6fae57"/><circle cx="60" cy="34" r="30" fill="#7fbf63"/><rect x="53" y="62" width="14" height="66" rx="3" fill="#8a5a32"/><path d="M60 100l-12-10M60 92l11-9" stroke="#8a5a32" stroke-width="5" stroke-linecap="round"/><polygon points="28,50 60,24 92,50" fill="#d0688a"/><rect x="34" y="48" width="52" height="26" rx="3" fill="#c48a52"/><rect x="47" y="54" width="13" height="11" rx="2" fill="#ffd66b"/><path d="M53.5 54v11M47 59.5h13" stroke="#a8713f" stroke-width="1.5"/><rect x="67" y="57" width="11" height="17" rx="5" fill="#7c4f2a"/><rect x="24" y="73" width="72" height="6" rx="3" fill="#7c4f2a"/><path d="M30 79v46M40 79v46M30 88h10M30 98h10M30 108h10M30 118h10" stroke="#a8713f" stroke-width="2.5" stroke-linecap="round"/></svg>
 			<h1>Treehouse 310</h1>
-			<p class="muted">Paste your key to come in. It stays in this browser.</p>
+			<p class="muted">Paste your key to climb up. It stays in this browser.</p>
 			<input id="login-key" type="password" autocomplete="current-password" placeholder="Your key" required>
 			<p id="login-error" class="error" hidden></p>
-			<button type="submit" class="primary">Sign in</button>
+			<button type="submit" class="primary">Climb up</button>
 		</form>
 	</main>
 
 	<div id="app" hidden>
 		<header class="top">
-			<span class="brand">Treehouse 310</span>
+			<span class="brand"><svg class="logo" viewBox="0 0 120 132" aria-hidden="true"><ellipse cx="60" cy="127" rx="48" ry="5" fill="#8cc06b"/><circle cx="34" cy="48" r="24" fill="#6fae57"/><circle cx="86" cy="48" r="24" fill="#6fae57"/><circle cx="60" cy="34" r="30" fill="#7fbf63"/><rect x="53" y="62" width="14" height="66" rx="3" fill="#8a5a32"/><path d="M60 100l-12-10M60 92l11-9" stroke="#8a5a32" stroke-width="5" stroke-linecap="round"/><polygon points="28,50 60,24 92,50" fill="#d0688a"/><rect x="34" y="48" width="52" height="26" rx="3" fill="#c48a52"/><rect x="47" y="54" width="13" height="11" rx="2" fill="#ffd66b"/><path d="M53.5 54v11M47 59.5h13" stroke="#a8713f" stroke-width="1.5"/><rect x="67" y="57" width="11" height="17" rx="5" fill="#7c4f2a"/><rect x="24" y="73" width="72" height="6" rx="3" fill="#7c4f2a"/><path d="M30 79v46M40 79v46M30 88h10M30 98h10M30 108h10M30 118h10" stroke="#a8713f" stroke-width="2.5" stroke-linecap="round"/></svg>Treehouse 310</span>
 			<nav>
 				<button data-tab="chat">Chat</button>
 				<button data-tab="notes">Notes</button>
@@ -45,7 +49,7 @@
 				<h2 id="channel-title"></h2>
 				<div id="messages" class="messages"></div>
 				<form id="composer" class="composer">
-					<textarea name="text" rows="2" placeholder="Start a new thread" required></textarea>
+					<textarea name="text" rows="2" placeholder="Say something to start a thread" required></textarea>
 					<button type="submit" class="primary">Send</button>
 				</form>
 			</div>
@@ -66,7 +70,7 @@
 			</aside>
 			<div class="pane">
 				<div id="note-empty" class="empty">
-					<p>Pick a page, or make a new one.</p>
+					<p>Pick a page, or plant a new one.</p>
 				</div>
 				<article id="note" hidden>
 					<div class="note-head">
@@ -106,7 +110,7 @@
 					<thead><tr><th>Name</th><th>Size</th><th>From</th><th>Added</th><th></th></tr></thead>
 					<tbody id="file-rows"></tbody>
 				</table>
-				<p id="files-empty" class="empty" hidden>No files yet. Upload one above.</p>
+				<p id="files-empty" class="empty" hidden>Nothing stashed up here yet. Upload something above.</p>
 				<div id="preview" class="preview card" hidden></div>
 			</div>
 		</section>

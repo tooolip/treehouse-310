@@ -150,6 +150,7 @@ function messageView(m, { inThread = false } = {}) {
 	return el(
 		"div",
 		{ class: `msg${!inThread && m.id === state.threadId ? " open" : ""}` },
+		el("span", { class: `avatar ${m.author}`, "aria-hidden": "true" }, m.author.charAt(0).toUpperCase()),
 		el("div", { class: "msg-head" }, el("span", { class: "msg-author" }, name(m.author)), el("span", { class: "msg-time" }, when(m.created_at))),
 		el("div", { class: "msg-text" }, m.text),
 		!inThread &&
@@ -199,7 +200,7 @@ async function loadChat() {
 	const box = $("messages");
 	const atBottom = box.scrollHeight - box.scrollTop - box.clientHeight < 40;
 	const roots = messages.filter((m) => m.parent_id === null);
-	box.replaceChildren(...(roots.length ? roots.map((m) => messageView(m)) : [el("p", { class: "empty" }, "No threads here yet. Start one below.")]));
+	box.replaceChildren(...(roots.length ? roots.map((m) => messageView(m)) : [el("p", { class: "empty" }, "It's quiet up here. Start a thread below.")]));
 	if (atBottom) box.scrollTop = box.scrollHeight;
 	if (messages.length) api("/api/chat/read", { method: "POST", body: { channel: state.channel } }).catch(() => {});
 	if (state.threadId) await loadThread();
@@ -320,7 +321,7 @@ function showNote() {
 	$("note-title").textContent = note.title;
 	$("note-meta").textContent = `Edited by ${name(note.updated_by)}, ${when(note.updated_at)}`;
 	$("note-body").replaceChildren(
-		note.body.trim() ? markdown(note.body) : el("p", { class: "muted" }, "This page is empty. Click Edit to write something."),
+		note.body.trim() ? markdown(note.body) : el("p", { class: "muted" }, "This page is blank. Click Edit to write something."),
 	);
 }
 
