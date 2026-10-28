@@ -66,13 +66,13 @@ Keys never go in the repo. Locally they live in `.dev.vars`, which is gitignored
 Alex runs this on her computer, with her key:
 
 ```bash
-claude mcp add --transport http --scope user treehouse-310 https://treehouse-310.YOUR-SUBDOMAIN.workers.dev/mcp --header "Authorization: Bearer MEMBER_ONE_KEY_HERE"
+claude mcp add --transport http --scope user treehouse-310 https://workspace.example.com/mcp --header "Authorization: Bearer MEMBER_ONE_KEY_HERE"
 ```
 
 Sam runs the same thing on his computer, with his key:
 
 ```bash
-claude mcp add --transport http --scope user treehouse-310 https://treehouse-310.YOUR-SUBDOMAIN.workers.dev/mcp --header "Authorization: Bearer MEMBER_TWO_KEY_HERE"
+claude mcp add --transport http --scope user treehouse-310 https://workspace.example.com/mcp --header "Authorization: Bearer MEMBER_TWO_KEY_HERE"
 ```
 
 `--scope user` makes it available in every project. Check it worked with `claude mcp list`, or ask Claude "check my Treehouse inbox".
