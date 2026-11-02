@@ -15,11 +15,11 @@ export async function identify(request: Request, env: Env): Promise<Person | nul
  const entries = Object.entries(members);
  const bindings = env as unknown as Record<string, unknown>;
  if (entries.some(([id, binding]) => !id || typeof binding !== "string" ||
-  !/^[A-Z][A-Z0-9_]*$/.test(binding) || typeof bindings[binding] !== "string" ||
-  !(bindings[binding] as string).trim())) return null;
+  !/^[A-Z][A-Z0-9_]*$/.test(binding))) return null;
  const given = await digest(match[1].trim());
  for (const [id, binding] of entries) {
-  const key = bindings[binding as string] as string;
+  const key = bindings[binding as string];
+  if (typeof key !== "string" || !key.trim()) continue;
   if (crypto.subtle.timingSafeEqual(given, await digest(key))) return id;
  }
  return null;

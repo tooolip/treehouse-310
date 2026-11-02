@@ -12,4 +12,6 @@ for(const value of ['', '{broken', '[]', 'null', '{"member-one":"MISSING"}', '{"
  assert.equal(await identify(request('first-test-key'),{...env,MEMBER_BINDINGS_JSON:value}),null);
 }
 assert.equal(await identify(request('first-test-key'),{...env,MEMBER_ONE_KEY:''}),null);
+assert.equal(await identify(request('second-test-key'),{...env,MEMBER_ONE_KEY:''}),'member-two');
+assert.equal(await identify(request('second-test-key'),{MEMBER_BINDINGS_JSON:env.MEMBER_BINDINGS_JSON,MEMBER_TWO_KEY:env.MEMBER_TWO_KEY}),'member-two');
 console.log('Treehouse authentication: existing IDs resolve correctly; missing, invalid, and malformed credentials deny access.');
