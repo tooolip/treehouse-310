@@ -83,3 +83,7 @@ Markdown is sanitized with DOMPurify. Downloaded files use attachment headers an
 | `public/` | Browser interface |
 | `migrations/` | Numbered D1 schema changes |
 | `.dev.vars.example` | Local example member configuration |
+
+## iPhone client
+
+This branch includes a native SwiftUI client. See [iOS setup](ios/README.md) for building, configuring your server, and running the sample space.

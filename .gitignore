@@ -3,6 +3,11 @@ node_modules/
 .dev.vars*
 !.dev.vars.example
 .env*
+ios/build*/
+ios/**/xcuserdata/
+ios/**/*.xcuserstate
+ios/Local.xcconfig
+.DS_Store
 
-# Private production resource identifiers
+# Private production configuration
 wrangler.production.jsonc
