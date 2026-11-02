@@ -80,7 +80,7 @@ function name(person) {
 	return person === state.me ? "You" : person.charAt(0).toUpperCase() + person.slice(1);
 }
 
-// "You" / "Sam" for the person, "Your Claude" / "Sam's Claude" for their Claude.
+// Distinguish a member from their agent.
 function authorName(m) {
 	if (m.via !== "claude") return name(m.author);
 	return m.author === state.me ? "Your Claude" : `${name(m.author)}'s Claude`;
@@ -157,7 +157,7 @@ function messageView(m, { inThread = false } = {}) {
 	return el(
 		"div",
 		{ class: `msg${!inThread && m.id === state.threadId ? " open" : ""}` },
-		el("span", { class: `avatar ${m.author}${m.via === "claude" ? " claude" : ""}`, "aria-hidden": "true" }, m.author.charAt(0).toUpperCase()),
+		el("span", { class: `avatar ${m.author === state.me ? "self" : "other"}${m.via === "claude" ? " claude" : ""}`, "aria-hidden": "true" }, m.author.charAt(0).toUpperCase()),
 		el("div", { class: "msg-head" }, el("span", { class: "msg-author" }, authorName(m)), el("span", { class: "msg-time" }, when(m.created_at))),
 		m.text ? el("div", { class: "msg-text" }, m.text) : null,
 		attachedFile(m),

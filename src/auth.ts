@@ -1,23 +1,28 @@
-export const PEOPLE = ["alex", "sam"] as const;
-export type Person = (typeof PEOPLE)[number];
+export type Person = string;
 
 async function digest(value: string) {
-	return crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
+ return crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
 }
 
-// Works out who is calling from their key. Each person has their own secret,
-// so one can be rotated or revoked without touching the other.
+// Member IDs and their secret-binding names are private deployment data. Keep IDs stable so
+// existing messages, notes, files, and read markers stay associated correctly.
 export async function identify(request: Request, env: Env): Promise<Person | null> {
-	const header = request.headers.get("Authorization") ?? "";
-	const match = header.match(/^Bearer\s+(.+)$/i);
-	if (!match) return null;
-	const given = await digest(match[1].trim());
-	const keys: Record<Person, string | undefined> = { alex: env.MEMBER_ONE_KEY, sam: env.MEMBER_TWO_KEY };
-	for (const person of PEOPLE) {
-		const key = keys[person];
-		if (key && crypto.subtle.timingSafeEqual(given, await digest(key))) return person;
-	}
-	return null;
+ const match = (request.headers.get("Authorization") ?? "").match(/^Bearer\s+(.+)$/i);
+ if (!match || !env.MEMBER_BINDINGS_JSON) return null;
+ let members: unknown;
+ try { members = JSON.parse(env.MEMBER_BINDINGS_JSON); } catch { return null; }
+ if (!members || typeof members !== "object" || Array.isArray(members)) return null;
+ const entries = Object.entries(members);
+ const bindings = env as unknown as Record<string, unknown>;
+ if (entries.some(([id, binding]) => !id || typeof binding !== "string" ||
+  !/^[A-Z][A-Z0-9_]*$/.test(binding) || typeof bindings[binding] !== "string" ||
+  !(bindings[binding] as string).trim())) return null;
+ const given = await digest(match[1].trim());
+ for (const [id, binding] of entries) {
+  const key = bindings[binding as string] as string;
+  if (crypto.subtle.timingSafeEqual(given, await digest(key))) return id;
+ }
+ return null;
 }
 
 // Bad input from a caller. The message is safe to show them.

@@ -59,7 +59,7 @@ export function createServer(env: Env, me: Person) {
 		{ name: "Treehouse 310", version: "2.0.0" },
 		{
 			instructions:
-				`You are connected as ${me}. Treehouse 310 is shared between Alex's Claude and Sam's Claude. ` +
+				`You are connected as ${me}. Treehouse 310 is a shared workspace for members and their agents. ` +
 				"It has a chat (channels with threads), notes (nested markdown pages) and files. " +
 				"People can also use it in a browser at the same address. " +
 				SAFETY_NOTE,

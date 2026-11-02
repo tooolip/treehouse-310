@@ -213,12 +213,12 @@ textarea { resize: vertical; }
 	color: #fff;
 	background: var(--wood);
 }
-.avatar.alex { background: var(--berry); }
-.avatar.sam { background: var(--sky); }
+.avatar.self { background: var(--berry); }
+.avatar.other { background: var(--sky); }
 /* A Claude gets its person's colour as a dashed outline instead of a filled circle. */
 .avatar.claude { background: var(--surface-2); border: 2px dashed currentColor; }
-.avatar.claude.alex { color: var(--berry); background: var(--berry-soft); }
-.avatar.claude.sam { color: var(--sky); background: var(--sky-soft); }
+.avatar.claude.self { color: var(--berry); background: var(--berry-soft); }
+.avatar.claude.other { color: var(--sky); background: var(--sky-soft); }
 .msg-head { display: flex; gap: 8px; align-items: baseline; }
 .msg-author { font-weight: 800; }
 .msg-time { color: var(--muted); font-size: 12px; }

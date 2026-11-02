@@ -4,8 +4,7 @@
 interface __BaseEnv_Env {
 	FILES: R2Bucket;
 	DB: D1Database;
-	MEMBER_ONE_KEY: string;
-	MEMBER_TWO_KEY: string;
+	MEMBER_BINDINGS_JSON: string;
 }
 declare namespace Cloudflare {
 	interface GlobalProps {
@@ -18,7 +17,7 @@ type StringifyValues<EnvType extends Record<string, unknown>> = {
 	[Binding in keyof EnvType]: EnvType[Binding] extends string ? EnvType[Binding] : string;
 };
 declare namespace NodeJS {
-	interface ProcessEnv extends StringifyValues<Pick<Cloudflare.Env, "MEMBER_ONE_KEY" | "MEMBER_TWO_KEY">> {}
+	interface ProcessEnv extends StringifyValues<Pick<Cloudflare.Env, "MEMBER_BINDINGS_JSON">> {}
 }
 declare module "*.txt" {
 	const value: string;
