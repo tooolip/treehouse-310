@@ -1,3 +1,4 @@
-# Copy to .dev.vars for local testing with `wrangler dev`. Never commit .dev.vars.
-MEMBER_ONE_KEY=local-alex-key
-MEMBER_TWO_KEY=local-sam-key
+# Local examples only. Never use these keys in production.
+MEMBER_BINDINGS_JSON='{"member-one":"MEMBER_ONE_KEY","member-two":"MEMBER_TWO_KEY"}'
+MEMBER_ONE_KEY=local-member-one-key
+MEMBER_TWO_KEY=local-member-two-key

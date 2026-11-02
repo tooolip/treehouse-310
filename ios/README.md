@@ -9,7 +9,7 @@ A native SwiftUI client for the existing Treehouse JSON API. Requires iOS 18+ an
 3. Connect and unlock your iPhone, trust the Mac, and enable **Settings → Privacy & Security → Developer Mode** when prompted. The phone may restart.
 4. Select the **Treehouse** app target, open **Signing & Capabilities**, and choose your **Personal Team**. Leave automatic signing enabled. If Apple reports the bundle identifier is unavailable, change it to your own unique identifier and update the install script’s launch identifier.
 5. Select your iPhone as the run destination and press **⌘R**. If macOS asks `codesign` to use a key, approve the request using your Mac login password. If the phone asks you to trust the developer, follow its on-device instructions.
-6. Open Treehouse and paste your existing personal Treehouse key. Keep the default server, `https://workspace.example.com`. The key goes directly to that server and is stored in this iPhone’s Keychain.
+6. Open Treehouse and paste your existing personal Treehouse key. Replace the example server with your own deployed workspace origin. The key goes directly to that server and is stored in this iPhone’s Keychain.
 
 Use **Take a look around** to try a separate sample space. It contains fictional/sample content and never contacts the server. Leave the demo to sign into the real Treehouse.
 
@@ -72,4 +72,4 @@ This runner uses only `http://127.0.0.1:8787` and the repository’s local test 
 - Message text drafts and note drafts persist locally. Pending attachment bytes and their upload receipts are kept only while the composer remains alive; reselect attachments after restarting the app. Ambiguous message sends require confirmation before retrying.
 - Notes check for changed content before saving, but the deployed API cannot guarantee an atomic conditional write. Avoid editing the same note simultaneously. Full Markdown tables and code-block styling are not implemented; raw text remains readable.
 - The app caches recent content for offline reading. You must reconnect to send or save; there is no automatic offline write queue. Sign-out removes credentials, drafts, cached content, and previews.
-- App Store copy, privacy draft, release notes, and sample screenshots are in `AppStore/`. These are preparation materials; nothing has been uploaded or published.
+- App Store copy, privacy draft, release notes, and screenshot capture instructions are in `AppStore/`. These are preparation materials; nothing has been uploaded or published.

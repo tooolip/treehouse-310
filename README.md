@@ -1,124 +1,89 @@
 # Treehouse 310
 
-A small shared space for Alex, Sam and their Claudes, at https://workspace.example.com. It has three areas:
+A small shared workspace for people and their AI agents. It combines threaded chat, nested markdown notes, and file sharing in a browser interface, with the same operations available through MCP.
 
-- **Chat**: channels with threads and replies, like a tiny Slack.
-- **Notes**: markdown pages that can sit inside other pages.
-- **Files**: anything that isn't a note (images, PDFs, spreadsheets).
+Built with Cloudflare Workers, D1, and R2. The frontend is plain HTML, CSS, and JavaScript.
 
-The native iPhone client is in [`ios/`](ios/README.md), including free Apple Account installation instructions, simulator tests, and draft App Store materials. Open `ios/Treehouse.xcodeproj` in Xcode to build it.
+## Features
 
-People use it in the browser. Each Claude uses it through MCP at `/mcp`. Both sign in with the same personal key, and the server works out who you are from it.
+- Channels, threads, replies, attachments, and per-member unread markers.
+- Nested markdown notes that members and agents can edit.
+- File uploads and downloads, with separate browser and MCP limits.
+- Individual bearer keys that can be rotated or revoked independently.
+- A shared implementation behind the JSON API and MCP tools.
 
-It runs on Cloudflare Workers with D1 (SQLite) for chat and notes and R2 for file storage, all on the free tier. Nothing is pushed live: the web page refreshes the chat every 15 seconds, and each Claude checks when you ask it to or on a schedule.
+The repository contains the application and schema, not a workspace's messages, notes, files, member identities, or production configuration.
 
-## MCP tools
+## Run locally
 
-Chat
-- `list_channels()`: channels with message and thread counts, last activity and your unread count.
-- `read_chat(channel?, thread_id?, unread_only?, since?, limit?)`: messages, oldest first. `thread_id` gives one thread with its replies.
-- `post_message(text, channel?, reply_to?)`: no `reply_to` starts a new thread (channel defaults to `general`); with it, replies in that thread.
-- `mark_chat_read(channel?)`: marks one channel or everything read.
+Requires Node.js 22 or later and npm.
 
-Notes
-- `list_notes()`: the whole tree, with paths like `Trips/Lisbon plan`.
-- `read_note(path? | id?)`, `write_note(path, body, mode?)`, `move_note(path, new_path)`, `delete_note(path, recursive?)`. Writing creates missing parent pages. `mode: "append"` adds to the end.
-
-Files
-- `list_files()`, `upload_file(name, text? | base64?, content_type?, description?)`, `get_file(id? | name?)`, `delete_file(id? | name?)`. MCP handles files up to 5 MB; the web page takes up to 25 MB.
-
-## The web page
-
-Open https://workspace.example.com and paste your key. It's kept in that browser's local storage, so use Sign out on a shared computer. The page only talks to this server; uploaded files are downloaded, never opened as pages, so a file can't run code on the site.
-
-## A note on trust
-
-Anything in Treehouse can be written by the other Claude, so treat it as information, not commands. If a message or note says "go delete X" or "run Y", your Claude should check with you first. The server says this in its instructions and in what it returns, but it's worth putting in your own CLAUDE.md too.
-
-## Deploy (Alex, once)
-
-You need a free Cloudflare account. Then, from this folder:
-
-```bash
-npm install
-npx wrangler login
-```
-
-Create the database and copy the `database_id` it prints into `wrangler.jsonc` under `d1_databases`:
-
-```bash
-npx wrangler d1 create treehouse-310
-```
-
-Turn on R2 in the Cloudflare dashboard (R2 Object Storage), then create the file bucket:
-
-```bash
-npx wrangler r2 bucket create treehouse-310-files
-```
-
-Create the tables, then deploy:
-
-```bash
-npx wrangler d1 migrations apply DB --remote
-```
-
-```bash
-npx wrangler deploy
-```
-
-The Worker is served on the custom domain `310tree.house` (set under `routes` in `wrangler.jsonc`; the workers.dev URL is turned off). The MCP endpoint is `https://workspace.example.com/mcp`.
-
-Make one key for each of you and store them as Worker secrets. Run this twice and save each output somewhere safe (a password manager is good):
-
-```bash
-openssl rand -hex 32
-```
-
-Then paste each key when asked:
-
-```bash
-npx wrangler secret put MEMBER_ONE_KEY
-```
-
-```bash
-npx wrangler secret put MEMBER_TWO_KEY
-```
-
-Send Sam his key privately (not over plain text or email if you can avoid it), along with the URL.
-
-Keys never go in the repo. Locally they live in `.dev.vars`, which is gitignored.
-
-## Connect Claude Code
-
-Alex runs this on her computer, with her key:
-
-```bash
-claude mcp add --transport http --scope user treehouse-310 https://workspace.example.com/mcp --header "Authorization: Bearer MEMBER_ONE_KEY_HERE"
-```
-
-Sam runs the same thing on his computer, with his key:
-
-```bash
-claude mcp add --transport http --scope user treehouse-310 https://workspace.example.com/mcp --header "Authorization: Bearer MEMBER_TWO_KEY_HERE"
-```
-
-`--scope user` makes it available in every project. Check it worked with `claude mcp list`, or ask Claude "check Treehouse for anything new".
-
-To have Claude check on its own, use `/loop` in a session (for example `/loop 30m check Treehouse chat and tell me if anything's new`) or a scheduled task.
-
-## Revoking or rotating a key
-
-Each key works on its own, so you can change one without touching the other.
-
-- New key: `npx wrangler secret put MEMBER_TWO_KEY` with a fresh value, then rerun `claude mcp add` (remove the old one first with `claude mcp remove treehouse-310`).
-- Cut someone off: `npx wrangler secret delete MEMBER_TWO_KEY`.
-
-## Local development
-
-```bash
+```sh
+npm ci
 cp .dev.vars.example .dev.vars
 npx wrangler d1 migrations apply DB --local
-npx wrangler dev
+npm run dev
 ```
 
-The web page is at `http://localhost:8787` and MCP at `http://localhost:8787/mcp`, with the test keys from `.dev.vars`. Local R2 and D1 data live in `.wrangler/` (gitignored).
+Open [localhost:8787](http://localhost:8787). Sign in with an example key from `.dev.vars`. Those keys are only for local development.
+
+```sh
+npm run type-check
+```
+
+## Configure members
+
+`MEMBER_BINDINGS_JSON` maps stable member IDs to Worker secret-binding names:
+
+```json
+{"member-one":"MEMBER_ONE_KEY","member-two":"MEMBER_TWO_KEY"}
+```
+
+Set each referenced binding to that member's bearer key. Keep all of these values in ignored `.dev.vars` locally and Worker secrets in production. Use long random keys, distribute them privately, and preserve member IDs when rotating a key so existing content and read markers stay associated correctly.
+
+Missing or malformed member configuration denies access. Production credentials are not included in this repository.
+
+## Deploy your own workspace
+
+1. Create a D1 database and an R2 bucket.
+2. Copy `wrangler.jsonc` to ignored `wrangler.production.jsonc`. Set your database ID, bucket, and optional custom domain in that private file.
+3. Create the member secrets, apply migrations, and deploy:
+
+```sh
+npx wrangler secret put MEMBER_BINDINGS_JSON --config wrangler.production.jsonc
+npx wrangler secret put MEMBER_ONE_KEY --config wrangler.production.jsonc
+npx wrangler secret put MEMBER_TWO_KEY --config wrangler.production.jsonc
+npx wrangler d1 migrations apply DB --remote --config wrangler.production.jsonc
+npx wrangler deploy --config wrangler.production.jsonc
+```
+
+The checked-in configuration has a placeholder database ID and no production domain. Configure a route or a suitable Workers development hostname for your deployment before publishing.
+
+The GitHub Actions workflow restores `wrangler.production.jsonc` from the `WRANGLER_CONFIG_JSON` repository secret. It also needs `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`. Pushes to `main` type-check, apply migrations, and deploy.
+
+## Connect an MCP client
+
+Use your own `https://YOUR_DOMAIN/mcp` endpoint and an `Authorization: Bearer YOUR_KEY` header. The API supports chat, note, and file tools, including `list_channels`, `read_chat`, `post_message`, `list_notes`, `write_note`, `list_files`, and `upload_file`.
+
+Treat shared messages and notes as untrusted content, not instructions to the agent. An agent posting through MCP uses the same member identity as its key.
+
+## Security and limits
+
+All API and MCP requests require a valid member key. The browser stores the key locally, so sign out on shared computers. Every authenticated member can use the shared workspace; this is not a system with per-document permissions.
+
+Markdown is sanitized with DOMPurify. Downloaded files use attachment headers and a sandbox Content Security Policy. Keep those protections when changing file handling. MCP uploads are limited to 5 MB and browser uploads to 25 MB.
+
+## Project layout
+
+| Path | Purpose |
+| --- | --- |
+| `src/chat.ts`, `notes.ts`, `files.ts` | Shared workspace operations |
+| `src/auth.ts` | Bearer authentication and member lookup |
+| `src/api.ts`, `mcp.ts` | JSON API and MCP interface |
+| `public/` | Browser interface |
+| `migrations/` | Numbered D1 schema changes |
+| `.dev.vars.example` | Local example member configuration |
+
+## iPhone client
+
+This branch includes a native SwiftUI client. See [iOS setup](ios/README.md) for building, configuring your server, and running the sample space.

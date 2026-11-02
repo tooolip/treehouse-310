@@ -5,10 +5,10 @@ import Foundation
     @MainActor static func main() async throws {
         let endpoint = URL(string: "http://127.0.0.1:8787")!
         let store = LocalStore(directory: FileManager.default.temporaryDirectory.appendingPathComponent("TreehouseIntegration-" + UUID().uuidString))
-        let api = APIClient(endpoint: endpoint, key: "local-sam-key", store: store)
+        let api = APIClient(endpoint: endpoint, key: "local-member-two-key", store: store)
         defer { api.deactivate() }
         let person = try await api.me()
-        precondition(person == "sam")
+        precondition(person == "member-two")
         let channel = "ios-test-" + UUID().uuidString.prefix(8).lowercased()
         let root = try await api.post(text: "Local iOS integration test", channel: channel, replyTo: nil, fileId: nil)
         let uploaded = try await api.upload(PendingUpload(name: "ios-test.txt", contentType: "text/plain", data: Data("Round trip verified".utf8)))

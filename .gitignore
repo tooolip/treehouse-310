@@ -8,3 +8,6 @@ ios/**/xcuserdata/
 ios/**/*.xcuserstate
 ios/Local.xcconfig
 .DS_Store
+
+# Private production configuration
+wrangler.production.jsonc
